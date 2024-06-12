@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from social_network.friends.serializer import FriendshipRequestSerializer
 from social_network.friends.utils import check_and_prepare_response, search_user
-
+from social_network.friends.throttling import MyCustomThrottle
 # Create your views here.
 from .models import Friend, FriendshipRequest
 from social_network.users.models import User
@@ -19,7 +19,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.throttling import UserRateThrottle
 
 
 class FriendsListView(viewsets.GenericViewSet, ListModelMixin):
@@ -67,7 +66,7 @@ class FriendsShipActionView(viewsets.GenericViewSet):
     """
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    throttle_classes = [UserRateThrottle]
+    throttle_classes = [MyCustomThrottle]
 
     @check_and_prepare_response
     def send_request(self, request, friend=None):

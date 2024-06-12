@@ -45,7 +45,7 @@ def search_user(sent_request, curr_user, search_key):
             users = User.objects.filter(Q(username__icontains=search_key)).exclude(id__in=sent_request).exclude(
             id=curr_user.id)
     else:
-        users = User.objects.filter.exclude(id__in=sent_request).exclude(
+        users = User.objects.exclude(id__in=sent_request).exclude(
             id=curr_user.id)
     return users
     
