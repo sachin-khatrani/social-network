@@ -43,10 +43,10 @@ class FriendshipManager(models.Manager):
         if self.are_friends(from_user, to_user):
             raise AlreadyFriendsError("Users are already friends")
 
-        if FriendshipRequest.objects.filter(from_user=from_user, to_user=to_user).exists():
+        if FriendshipRequest.objects.filter(from_user=from_user, to_user=to_user, status="pending").exists():
             raise AlreadyExistsError("This user already requested friendship from you.")
 
-        if FriendshipRequest.objects.filter(from_user=to_user, to_user=from_user).exists():
+        if FriendshipRequest.objects.filter(from_user=to_user, to_user=from_user, status="pending").exists():
             raise AlreadyExistsError("You already requested friendship from this user.")
 
         if message is None:
@@ -57,6 +57,8 @@ class FriendshipManager(models.Manager):
         )
 
         if created is False:
+            if frd_req.status == "rejected":
+                raise  AlreadyExistsError("Friendship Rejected By User")
             raise AlreadyExistsError("Friendship already requested")
 
         if message:

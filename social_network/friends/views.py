@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from social_network.friends.serializer import FriendshipRequestSerializer
 from social_network.friends.utils import check_and_prepare_response, search_user
-
+from social_network.friends.throttling import MyCustomThrottle
 # Create your views here.
 from .models import Friend, FriendshipRequest
 from social_network.users.models import User
@@ -19,7 +19,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.throttling import UserRateThrottle
 
 
 class FriendsListView(viewsets.GenericViewSet, ListModelMixin):
@@ -61,30 +60,35 @@ class FriendsListView(viewsets.GenericViewSet, ListModelMixin):
         friends = [UserListSerializer(frd.from_user).data for frd in paginated_queryset]
         return Response({"data": friends, "success": True}, status=status.HTTP_200_OK)
     
-class FriendsShipActionView(viewsets.GenericViewSet):
-    """
-    View to handle friend-related actions such as sending, accepting, rejecting, and canceling friend requests.
-    """
+class SendFriendShipReqView(viewsets.GenericViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
-    throttle_classes = [UserRateThrottle]
-
+    throttle_classes = [MyCustomThrottle]
+   
     @check_and_prepare_response
     def send_request(self, request, friend=None):
         """
         Send a friend request to the specified user.
         """
-        friend_user = User.objects.get(username=friend)
+        friend_user = User.objects.get(username=friend, is_superuser=False)
             
         friend_request = FriendshipRequest.objects.add_friend(request.user, friend_user, message='Hi! I would like to add you')
         return FriendshipRequestSerializer(friend_request).data, True, "Friend Request Send Successfully."
     
+
+class FriendsShipActionView(viewsets.GenericViewSet):
+    """
+    View to handle friend-related actions such as accepting, rejecting, and canceling friend requests.
+    """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     @check_and_prepare_response
     def accept_request(self, request, friend=None):
         """
         Accept a friend request from the specified user.
         """
-        friend_user = User.objects.get(username=friend)
+        friend_user = User.objects.get(username=friend, is_superuser=False)
 
         try:
             friend_request = FriendshipRequest.objects.get(to_user=request.user, from_user=friend_user)
@@ -103,7 +107,7 @@ class FriendsShipActionView(viewsets.GenericViewSet):
         """
         Reject a friend request from the specified user.
         """
-        friend_user = User.objects.get(username=friend)
+        friend_user = User.objects.get(username=friend, is_superuser=False)
         
         try:
             friend_request = FriendshipRequest.objects.get(to_user=request.user, from_user=friend_user)
@@ -122,7 +126,7 @@ class FriendsShipActionView(viewsets.GenericViewSet):
         Cancel a friend request sent to the specified user.
         """
         try:
-            friend_user = User.objects.get(username=friend)
+            friend_user = User.objects.get(username=friend, is_superuser=False)
             friend_request = FriendshipRequest.objects.get(from_user=request.user, to_user=friend_user, status="pending")
             res = friend_request.cancel()
 

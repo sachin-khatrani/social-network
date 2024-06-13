@@ -39,13 +39,13 @@ def check_and_prepare_response(func):
 def search_user(sent_request, curr_user, search_key):
     if search_key:
         if "@" in search_key:
-            users = User.objects.filter(email=search_key).exclude(id__in=sent_request).exclude(
+            users = User.objects.filter(email=search_key,is_superuser=False).exclude(id__in=sent_request).exclude(
             id=curr_user.id)
         else:
-            users = User.objects.filter(Q(username__icontains=search_key)).exclude(id__in=sent_request).exclude(
+            users = User.objects.filter(Q(username__icontains=search_key), is_superuser=False).exclude(id__in=sent_request).exclude(
             id=curr_user.id)
     else:
-        users = User.objects.filter.exclude(id__in=sent_request).exclude(
-            id=curr_user.id)
+        users = User.objects.exclude(id__in=sent_request).exclude(
+            id=curr_user.id).exclude(is_superuser=True)
     return users
     
