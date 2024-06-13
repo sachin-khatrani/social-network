@@ -3,11 +3,6 @@ from django.db import models
 
 from django.contrib.auth.models import UserManager
 
-class CustomUserManager(UserManager):
-    # def get_queryset(self):
-    #     return super().get_queryset().filter(is_superuser=False)
-    pass
-
 class User(AbstractUser):
     GENDER_CHOICES = [
         ('male', 'Male'),
@@ -18,8 +13,6 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ['id']  # Specify the default ordering
-
-    objects = CustomUserManager()
 
     def __str__(self):
         return self.username

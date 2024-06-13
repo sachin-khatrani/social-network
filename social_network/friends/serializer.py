@@ -4,7 +4,7 @@ from social_network.users.serializers import UserSerializer
 
 class FriendshipRequestSerializer(serializers.ModelSerializer):
     from_user = UserSerializer()
-
+    to_user = UserSerializer()
     class Meta:
         model = FriendshipRequest
         fields = "__all__"
